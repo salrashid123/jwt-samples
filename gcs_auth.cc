@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
 
     replace(assertion.begin(),  assertion.end(),'+','-');
     replace(assertion.begin(),  assertion.end(),'/','_');
-    replace(assertion.begin(),  assertion.end(),'=','*');
+    //replace(assertion.begin(),  assertion.end(),'=','*');
 
     CURL* curl;
 
