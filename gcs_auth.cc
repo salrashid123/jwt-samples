@@ -27,12 +27,13 @@ using namespace std;
 
 apt-get install libcurl4-openssl-dev libssl-dev
 g++  -std=c++11 -o gcs_auth gcs_auth.cc -lcurl -lcrypto 
-./gcs_auth
+./gcs_auth svc-2-429@mineral-minutia-820.iam.gserviceaccount.com GCPNETAppID-e4536f3eed76.p12
 {
-  "access_token" : "ya29.3QDSgqs9QupWd2eqLdxrhu-vAVSdI35Ol2In61TymxxxxmC17pmf-G2y9KTqSTQPPFHGcOTsXEA",
-  "token_type" : "Bearer",
-  "expires_in" : 3600
+  "access_token" : "ya29.ElquA-cHxNAM3HfmKLXY5A_OoLRoep0K3SL767uljjcLl5UHudPv8IUduCaXYUS3iheLE1_8Ph03ExQadGdcDWQ3b90WC7vM2K4ZeZpZ50JfaRMhiPygx4j9Yc0",
+  "expires_in" : 3600,
+  "token_type" : "Bearer"
 }
+
 
 This script acquires an oauth2 bearer access_token use with authenticated GCS 
 ShoppingAPI and ContentAPI requests.  GCS customers should use one of the 
@@ -152,10 +153,14 @@ char * doSign(char*certFile,const char* pwd, string plainText)
 }
 
 int main(int argc, char* argv[]) {
-    
-    std::string SCOPE = "https://www.googleapis.com/auth/devstorage.read_write";
-    char* certFile = (char*)"aaabbbbb.p12";
-    std::string iss = "xxxxyyyyy@developer.gserviceaccount.com";
+
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " service_account@project.iam.gserivceaccount.com your_certificate.p12" << std::endl;
+        return 1;
+    }    
+    std::string SCOPE = "https://www.googleapis.com/auth/userinfo.email";
+    std::string iss = argv[1];    
+    char* certFile = (char*)argv[2];
 
     std:string jwt_header = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
     long now = std::time(0);
