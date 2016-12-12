@@ -35,12 +35,14 @@ g++  -std=c++11 -o gcs_auth gcs_auth.cc -lcurl -lcrypto
 }
 
 
-This script acquires an oauth2 bearer access_token use with authenticated GCS 
-ShoppingAPI and ContentAPI requests.  GCS customers should use one of the 
-libraries shown below to get the token in a production setting.  This script 
-is provided to  demonstrate the encryption and structure of getting an oauth2 
-bearer tokens. Ensure the computer this script is run on is synced with a 
-NTP server.
+This script acquires an oauth2 bearer access_token for GoogleAPIs.  The example
+here acquires an access_token scoped to userinfo.email.   To use, download a pkcs .p12
+certificate file from the Google Cloud Console:
+https://developers.google.com/identity/protocols/OAuth2ServiceAccount#creatinganaccount
+Then, execute as
+./gcs_auth  <service_account_email>  certificate_file.p12
+
+Ensure the computer this script is run on is synced with a  NTP server.
 
 >> this code hans't been duration-tested in prod; may have a memory leak or two. <<
 
@@ -52,10 +54,6 @@ http://sehermitage.web.fc2.com/program/src/rsacrypt.c
 http://www.cplusplus.com/forum/unices/45878/
 http://stackoverflow.com/questions/5288076/doing-base64-encoding-and-decoding-in-openssl-c
 and others i thoughtlessly omitted
-
-openssl pkcs12 -in xxxxyyyy.p12 -nocerts -out privateKey.pem
-echo -n plainText | openssl dgst -sha256
-(stdin)= 3ec8d98e737b84ff4fa0a9f0943d32bca35fcc73
 
 */
 
@@ -155,22 +153,22 @@ char * doSign(char*certFile,const char* pwd, string plainText)
 int main(int argc, char* argv[]) {
 
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " service_account@project.iam.gserivceaccount.com your_certificate.p12" << std::endl;
+        cerr << "Usage: " << argv[0] << " service_account@project.iam.gserivceaccount.com your_certificate.p12" << endl;
         return 1;
     }    
-    std::string SCOPE = "https://www.googleapis.com/auth/userinfo.email";
-    std::string iss = argv[1];    
+    string SCOPE = "https://www.googleapis.com/auth/userinfo.email";
+    string iss = argv[1];    
     char* certFile = (char*)argv[2];
 
-    std:string jwt_header = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
-    long now = std::time(0);
-    std::string expire_on = std::to_string(now + 3600);
-    string claim ="{\"iss\":\"" + iss + "\",\"scope\":\"" + SCOPE + "\",\"aud\":\"https://accounts.google.com/o/oauth2/token\",\"exp\":" + expire_on + ",\"iat\":" + std::to_string(now) + "}";
+    string jwt_header = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
+    long now = time(0);
+    string expire_on = to_string(now + 3600);
+    string claim ="{\"iss\":\"" + iss + "\",\"scope\":\"" + SCOPE + "\",\"aud\":\"https://accounts.google.com/o/oauth2/token\",\"exp\":" + expire_on + ",\"iat\":" + to_string(now) + "}";
     //cout << "Clear text to sign ---> " << jwt_header << "." << claim << "\n";
     //cout << "==================\n";
     char* b64jwt = base64(jwt_header.c_str(), jwt_header.size());
     char* b64claim = base64(claim.c_str(), claim.size());    
-    std::string jwt = std::string(b64jwt) + "." + std::string(b64claim);
+    string jwt = string(b64jwt) + "." + string(b64claim);
 
     CRYPTO_malloc_init();
     ERR_load_crypto_strings();
@@ -184,7 +182,7 @@ int main(int argc, char* argv[]) {
     EVP_cleanup();
     //cout << "Signature: " << e << "\n";
     //cout << "jwt: =======\n" << jwt << "\n";
-    std::string assertion = jwt + "." + e;
+    string assertion = jwt + "." + e;
     //cout << "jwt + assertion ============\n" << assertion << "\n"; 
 
     replace(assertion.begin(),  assertion.end(),'+','-');
@@ -201,7 +199,7 @@ int main(int argc, char* argv[]) {
     //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L); 
 
     curl_easy_setopt(curl, CURLOPT_POST, 1);
-    std::string  postfields =  std::string("grant_type=assertion&assertion_type=http%3A%2F%2Foauth.net%2Fgrant_type%2Fjwt%2F1.0%2Fbearer&assertion=") + assertion.c_str() ; 
+    string  postfields =  string("grant_type=assertion&assertion_type=http%3A%2F%2Foauth.net%2Fgrant_type%2Fjwt%2F1.0%2Fbearer&assertion=") + assertion.c_str() ; 
 
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postfields.c_str());    
     curl_easy_perform(curl);
