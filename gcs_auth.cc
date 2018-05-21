@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
     char* b64claim = base64(claim.c_str(), claim.size());    
     string jwt = string(b64jwt) + "." + string(b64claim);
 
-    CRYPTO_malloc_init();
+    OPENSSL_malloc_init();
     ERR_load_crypto_strings();
     OpenSSL_add_all_algorithms(); 
     OpenSSL_add_all_ciphers();
